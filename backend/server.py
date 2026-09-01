@@ -104,6 +104,31 @@ class RegistrantUpdate(BaseModel):
     payment_status: Optional[str] = None
 
 
+class NewsInput(BaseModel):
+    title: str
+    body: str = ""
+    badge: str = "Umum"
+    date: str = ""
+
+
+class ResultInput(BaseModel):
+    category: str
+    division: str
+    athlete: str
+    contingent: str
+    medal: str
+
+
+class SponsorInput(BaseModel):
+    name: str
+    tier: str
+    logo_data: str
+
+
+MEDAL_VALUES = {"emas", "perak", "perunggu"}
+TIER_VALUES = {"platinum", "gold", "media"}
+
+
 @api_router.get("/")
 async def root():
     return {"message": "Nusa Wiraga API aktif"}
@@ -295,6 +320,103 @@ async def export_csv(user: dict = Depends(get_current_user)):
     )
 
 
+# ---------- Konten Publik ----------
+@api_router.get("/news")
+async def public_news():
+    return await db.news.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+
+
+@api_router.get("/results")
+async def public_results():
+    return await db.results.find({}, {"_id": 0}).sort("created_at", 1).to_list(1000)
+
+
+@api_router.get("/sponsors")
+async def public_sponsors():
+    return await db.sponsors.find({}, {"_id": 0}).sort("created_at", 1).to_list(200)
+
+
+# ---------- Admin CMS: Berita ----------
+@api_router.post("/admin/news")
+async def create_news(body: NewsInput, user: dict = Depends(get_current_user)):
+    doc = body.model_dump()
+    doc["id"] = str(uuid.uuid4())
+    doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.news.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.put("/admin/news/{news_id}")
+async def update_news(news_id: str, body: NewsInput, user: dict = Depends(get_current_user)):
+    result = await db.news.update_one({"id": news_id}, {"$set": body.model_dump()})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Berita tidak ditemukan")
+    return await db.news.find_one({"id": news_id}, {"_id": 0})
+
+
+@api_router.delete("/admin/news/{news_id}")
+async def delete_news(news_id: str, user: dict = Depends(get_current_user)):
+    result = await db.news.delete_one({"id": news_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Berita tidak ditemukan")
+    return {"message": "Berita dihapus"}
+
+
+# ---------- Admin CMS: Hasil & Juara ----------
+@api_router.post("/admin/results")
+async def create_result(body: ResultInput, user: dict = Depends(get_current_user)):
+    if body.medal not in MEDAL_VALUES:
+        raise HTTPException(status_code=422, detail="Medali tidak valid (emas/perak/perunggu)")
+    doc = body.model_dump()
+    doc["id"] = str(uuid.uuid4())
+    doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.results.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.put("/admin/results/{result_id}")
+async def update_result(result_id: str, body: ResultInput, user: dict = Depends(get_current_user)):
+    if body.medal not in MEDAL_VALUES:
+        raise HTTPException(status_code=422, detail="Medali tidak valid")
+    result = await db.results.update_one({"id": result_id}, {"$set": body.model_dump()})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Data juara tidak ditemukan")
+    return await db.results.find_one({"id": result_id}, {"_id": 0})
+
+
+@api_router.delete("/admin/results/{result_id}")
+async def delete_result(result_id: str, user: dict = Depends(get_current_user)):
+    result = await db.results.delete_one({"id": result_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Data juara tidak ditemukan")
+    return {"message": "Data juara dihapus"}
+
+
+# ---------- Admin CMS: Sponsor ----------
+@api_router.post("/admin/sponsors")
+async def create_sponsor(body: SponsorInput, user: dict = Depends(get_current_user)):
+    if body.tier not in TIER_VALUES:
+        raise HTTPException(status_code=422, detail="Tier sponsor tidak valid")
+    if not body.logo_data.startswith("data:image/") or len(body.logo_data) > 700_000:
+        raise HTTPException(status_code=422, detail="Logo harus gambar dengan ukuran di bawah 500 KB")
+    doc = body.model_dump()
+    doc["id"] = str(uuid.uuid4())
+    doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.sponsors.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.delete("/admin/sponsors/{sponsor_id}")
+async def delete_sponsor(sponsor_id: str, user: dict = Depends(get_current_user)):
+    result = await db.sponsors.delete_one({"id": sponsor_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Sponsor tidak ditemukan")
+    return {"message": "Sponsor dihapus"}
+
+
 app.include_router(api_router)
 
 app.add_middleware(
@@ -322,12 +444,32 @@ async def seed_admin():
         logger.info("Kata sandi admin diperbarui dari .env")
 
 
+SEED_NEWS = [
+    {"title": "Jadwal Technical Meeting & Pengundian Bagan Pertandingan", "date": "05 Oktober 2026", "badge": "Penting",
+     "body": "Seluruh manajer kontingen wajib hadir dalam technical meeting dan pengundian bagan pertandingan di Ruang VIP GOR Patriot Candrabhaga pukul 09.00 WIB."},
+    {"title": "Panduan Standar Perlengkapan Body Protector & Deker Sesuai Regulasi IPSI 2026", "date": "28 September 2026", "badge": "Regulasi",
+     "body": "Seluruh atlet kategori Tanding wajib menggunakan body protector dan deker standar IPSI. Pemeriksaan perlengkapan dilakukan saat penimbangan badan."},
+    {"title": "Daftar 64 Perguruan Silat yang Telah Mengonfirmasi Kontingen", "date": "20 September 2026", "badge": "Kontingen",
+     "body": "Sebanyak 64 perguruan dari 21 provinsi telah mengonfirmasi keikutsertaan. Kuota kontingen tersisa terbatas, segera daftarkan atlet terbaik Anda."},
+]
+
+
+async def seed_news():
+    if await db.news.count_documents({}) == 0:
+        now = datetime.now(timezone.utc).isoformat()
+        await db.news.insert_many([
+            {**n, "id": str(uuid.uuid4()), "created_at": now} for n in SEED_NEWS
+        ])
+        logger.info("Berita awal dimuat")
+
+
 @app.on_event("startup")
 async def startup():
     await db.users.create_index("email", unique=True)
     await db.login_attempts.create_index("identifier")
     await db.registrants.create_index("reg_number", unique=True)
     await seed_admin()
+    await seed_news()
 
 
 @app.on_event("shutdown")

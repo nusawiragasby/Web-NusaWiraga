@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { NewsManager } from "@/components/admin/NewsManager";
+import { ResultsManager } from "@/components/admin/ResultsManager";
+import { SponsorsManager } from "@/components/admin/SponsorsManager";
 import { api, API_BASE, formatApiError, waAthleteLink } from "@/lib/api";
 
 const CATEGORIES = ["Tanding Putra", "Tanding Putri", "Seni Tunggal Putra", "Seni Tunggal Putri", "Seni Ganda", "Seni Regu (TGR)"];
@@ -122,7 +126,15 @@ export default function AdminDashboard() {
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Panel Manajemen <span className="text-gold-gradient">Pendaftar</span></h1>
         <p className="mt-1 text-sm text-slate-400">Kelola kontingen, verifikasi berkas, dan pantau pembayaran atlet.</p>
 
-        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Tabs defaultValue="pendaftar" className="mt-8">
+          <TabsList className="border border-[#2E2E3A] bg-[#13131A]" data-testid="admin-tabs">
+            <TabsTrigger value="pendaftar" data-testid="admin-tab-pendaftar">Pendaftar</TabsTrigger>
+            <TabsTrigger value="berita" data-testid="admin-tab-berita">Berita</TabsTrigger>
+            <TabsTrigger value="juara" data-testid="admin-tab-juara">Hasil & Juara</TabsTrigger>
+            <TabsTrigger value="sponsor" data-testid="admin-tab-sponsor">Sponsor</TabsTrigger>
+          </TabsList>
+          <TabsContent value="pendaftar">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatCard icon={Users} label="Total Pendaftar" value={stats?.total ?? "-"} testId="admin-stats-total" />
           <StatCard icon={CheckCircle2} label="Terverifikasi" value={stats?.verified ?? "-"} testId="admin-stats-verified" />
           <StatCard icon={Clock} label="Menunggu Verifikasi" value={stats?.pending ?? "-"} testId="admin-stats-pending" />
@@ -240,6 +252,11 @@ export default function AdminDashboard() {
             </TableBody>
           </Table>
         </div>
+          </TabsContent>
+          <TabsContent value="berita"><NewsManager /></TabsContent>
+          <TabsContent value="juara"><ResultsManager /></TabsContent>
+          <TabsContent value="sponsor"><SponsorsManager /></TabsContent>
+        </Tabs>
       </main>
     </div>
   );

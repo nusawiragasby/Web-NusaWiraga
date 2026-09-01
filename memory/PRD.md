@@ -28,15 +28,18 @@
 - Admin dashboard /admin: kartu statistik, badge per kategori, tabel dengan filter/pencarian, ubah status & pembayaran, hapus, WA atlet, export CSV
 - SEO: komponen Seo, canonical/og dinamis, JSON-LD SportsEvent, llms.txt
 - Seed admin idempoten: admin@nusawiraga.id / NusaWiraga2026!
+- (2026-09-01) Email konfirmasi Resend AKTIF (pengirim onboarding@resend.dev; mode uji = hanya ke email pemilik akun Resend)
+- (2026-09-01) CMS Admin: tab Berita (tulis/ubah/hapus, 3 berita awal ter-seed), tab Hasil & Juara (input juara emas/perak/perunggu per kategori/divisi), tab Sponsor (upload logo maks 500KB base64, 3 tier). Beranda publik otomatis menampilkan data CMS: berita dari DB, papan juara menggantikan placeholder gelanggang saat ada data, logo sponsor menggantikan slot placeholder
 
 ## Backlog Prioritas
 ### P0
-- ~~Isi RESEND_API_KEY~~ SELESAI (2026-09-01): email konfirmasi aktif via Resend, pengirim onboarding@resend.dev. Catatan: mode uji Resend hanya mengirim ke email pemilik akun — verifikasi domain untuk produksi
 - Ganti nomor WhatsApp panitia & data kontak (masih placeholder 6281234567890)
+- Verifikasi domain di Resend agar email sampai ke semua pendaftar
 
 ### P1
-- CMS admin untuk kelola Berita & Hasil Pertandingan (input juara per kategori, bagan)
-- Upload logo sponsor oleh admin
+- Integrasi Google Sheets untuk data pendaftar (butuh: JSON service account + Spreadsheet ID dari user) — alternatif saat ini: tombol Export CSV di admin
+- Bagan pertandingan (bracket) visual per kelas
+- Upload logo sponsor ke object storage (saat ini base64 di MongoDB, cukup untuk logo kecil)
 - Bukti pembayaran upload oleh peserta (object storage)
 
 ### P2
@@ -45,6 +48,6 @@
 - Ekspor PDF kartu peserta/nomor undian
 
 ## Next Tasks
-1. Minta Resend API key user / aktifkan managed Resend
-2. Konfirmasi nomor WA panitia, alamat sekretariat, tanggal & venue final
-3. CMS berita & hasil pertandingan
+1. Minta nomor WA panitia asli + alamat sekretariat + tanggal & venue final
+2. Integrasi Google Sheets (menunggu kredensial user)
+3. Bracket/bagan pertandingan visual
