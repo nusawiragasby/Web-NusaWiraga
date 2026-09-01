@@ -9,7 +9,7 @@ import uuid
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import Optional
+from typing import Optional, List
 
 import bcrypt
 import jwt
@@ -96,6 +96,7 @@ class RegisterInput(BaseModel):
     nik_or_nisn: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_whatsapp: Optional[str] = None
+    member_names: Optional[List[str]] = None
     weight_class: Optional[str] = None
     official_coach: Optional[str] = None
 
@@ -222,6 +223,11 @@ async def send_confirmation_email(reg: dict):
 async def register(body: RegisterInput):
     if "Tanding" in body.category and not body.weight_class:
         raise HTTPException(status_code=422, detail="Kelas tanding wajib dipilih untuk kategori Tanding")
+    if "Berkelompok" in body.category:
+        names = [n.strip() for n in (body.member_names or []) if n and n.strip()]
+        if len(names) != 5:
+            raise HTTPException(status_code=422, detail="Kategori Berkelompok wajib diisi tepat 5 nama anggota")
+        body.member_names = names
     existing_numbers = await db.registrants.distinct("reg_number")
     nums = [int(r.split("-")[1]) for r in existing_numbers if r and r.startswith("NW26-") and r.split("-")[1].isdigit()]
     reg_number = f"NW26-{(max(nums) + 1) if nums else 1:04d}"
@@ -319,8 +325,9 @@ async def export_csv(user: dict = Depends(get_current_user)):
     writer = csv.writer(buf)
     writer.writerow(["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Perguruan", "Kategori", "Kelompok Usia", "Kelas", "Pelatih", "Status", "Pembayaran", "Tanggal Daftar"])
     for r in rows:
+        names = ", ".join(r["member_names"]) if r.get("member_names") else r.get("full_name")
         writer.writerow([
-            r.get("reg_number"), r.get("full_name"), r.get("nik_or_nisn"), r.get("email"),
+            r.get("reg_number"), names, r.get("nik_or_nisn"), r.get("email"),
             r.get("phone_whatsapp"), r.get("contingent_school"), r.get("category"),
             r.get("age_class"), r.get("weight_class") or "-", r.get("official_coach") or "-",
             r.get("status"), r.get("payment_status"), r.get("created_at"),
@@ -432,8 +439,9 @@ SHEET_HEADER = ["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Pergu
 
 
 def build_sheet_row(doc: dict) -> list:
+    names = ", ".join(doc["member_names"]) if doc.get("member_names") else doc.get("full_name")
     return [
-        doc.get("reg_number"), doc.get("full_name"), doc.get("nik_or_nisn") or "", doc.get("email") or "",
+        doc.get("reg_number"), names, doc.get("nik_or_nisn") or "", doc.get("email") or "",
         doc.get("phone_whatsapp") or "", doc.get("contingent_school"), doc.get("category"),
         doc.get("age_class"), doc.get("weight_class") or "-", doc.get("official_coach") or "-",
         doc.get("status"), doc.get("payment_status"), doc.get("created_at"),

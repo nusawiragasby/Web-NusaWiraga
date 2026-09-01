@@ -18,21 +18,27 @@ const WEIGHT_CLASSES = ["Kelas A (39-43 kg)", "Kelas B (43-47 kg)", "Kelas C (47
 const INITIAL = {
   full_name: "", contingent_school: "", category: "", age_class: "", weight_class: "", official_coach: "",
 };
+const INITIAL_MEMBERS = ["", "", "", ""];
 
 const inputCls = "border-[#2E2E3A] bg-[#0B0B0E] text-slate-100 placeholder:text-slate-500 focus-visible:ring-amber-500";
 
 export default function RegisterPage() {
   const [form, setForm] = useState(INITIAL);
+  const [members, setMembers] = useState(INITIAL_MEMBERS);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const isTanding = form.category.includes("Tanding");
+  const isGroup = form.category.includes("Berkelompok");
   const set = (k) => (e) => setForm({ ...form, [k]: e.target ? e.target.value : e });
+  const setMember = (i) => (e) => setMembers(members.map((m, j) => (j === i ? e.target.value : m)));
 
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await api.post("/register", form);
+      const payload = { ...form };
+      if (isGroup) payload.member_names = [form.full_name, ...members];
+      const { data } = await api.post("/register", payload);
       setResult(data);
       toast.success("Pendaftaran berhasil dikirim!");
     } catch (err) {
@@ -77,7 +83,7 @@ export default function RegisterPage() {
             <p className="mt-2 text-sm text-slate-400">Lengkapi data berikut. Panitia akan menghubungi kontingen Anda untuk verifikasi pembayaran & berkas.</p>
             <form onSubmit={submit} className="mt-8 grid gap-5 sm:grid-cols-2" data-testid="register-form">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Nama Lengkap Atlet</Label>
+                <Label htmlFor="full_name">{isGroup ? "Nama Anggota 1 (Ketua Regu)" : "Nama Lengkap Atlet"}</Label>
                 <Input id="full_name" required data-testid="reg-fullname-input" className={inputCls}
                   value={form.full_name} onChange={set("full_name")} placeholder="cth: Bima Sakti Pratama" />
               </div>
@@ -104,6 +110,13 @@ export default function RegisterPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {isGroup && members.map((m, i) => (
+                <div className="space-y-2" key={i}>
+                  <Label htmlFor={`member-${i + 2}`}>Nama Anggota {i + 2}</Label>
+                  <Input id={`member-${i + 2}`} required data-testid={`reg-member-${i + 2}-input`} className={inputCls}
+                    value={m} onChange={setMember(i)} placeholder={`cth: Nama anggota ${i + 2}`} />
+                </div>
+              ))}
               {isTanding && (
                 <div className="space-y-2">
                   <Label>Kelas Tanding (Berat Badan)</Label>
