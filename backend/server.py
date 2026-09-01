@@ -222,8 +222,9 @@ async def send_confirmation_email(reg: dict):
 async def register(body: RegisterInput):
     if "Tanding" in body.category and not body.weight_class:
         raise HTTPException(status_code=422, detail="Kelas tanding wajib dipilih untuk kategori Tanding")
-    count = await db.registrants.count_documents({})
-    reg_number = f"NW26-{count + 1:04d}"
+    existing_numbers = await db.registrants.distinct("reg_number")
+    nums = [int(r.split("-")[1]) for r in existing_numbers if r and r.startswith("NW26-") and r.split("-")[1].isdigit()]
+    reg_number = f"NW26-{(max(nums) + 1) if nums else 1:04d}"
     doc = body.model_dump()
     doc.update({
         "id": str(uuid.uuid4()),
@@ -296,6 +297,10 @@ async def update_registrant(reg_id: str, body: RegistrantUpdate, user: dict = De
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Pendaftar tidak ditemukan")
     doc = await db.registrants.find_one({"id": reg_id}, {"_id": 0})
+    try:
+        await update_sheet_row(doc)
+    except Exception as e:
+        logger.error(f"Gagal sinkron status ke Google Sheets: {e}")
     return doc
 
 
@@ -426,6 +431,15 @@ async def delete_sponsor(sponsor_id: str, user: dict = Depends(get_current_user)
 SHEET_HEADER = ["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Perguruan", "Kategori", "Kelompok Usia", "Kelas", "Pelatih", "Status", "Pembayaran", "Tanggal Daftar"]
 
 
+def build_sheet_row(doc: dict) -> list:
+    return [
+        doc.get("reg_number"), doc.get("full_name"), doc.get("nik_or_nisn") or "", doc.get("email") or "",
+        doc.get("phone_whatsapp") or "", doc.get("contingent_school"), doc.get("category"),
+        doc.get("age_class"), doc.get("weight_class") or "-", doc.get("official_coach") or "-",
+        doc.get("status"), doc.get("payment_status"), doc.get("created_at"),
+    ]
+
+
 def get_sheets_service():
     raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
     sheet_id = os.environ.get("GOOGLE_SPREADSHEET_ID", "")
@@ -446,12 +460,7 @@ async def append_registration_to_sheet(doc: dict):
     if not service:
         logger.info(f"[SHEETS NONAKTIF] {doc['reg_number']} tidak disinkron (kredensial belum diisi)")
         return
-    row = [
-        doc.get("reg_number"), doc.get("full_name"), doc.get("nik_or_nisn"), doc.get("email"),
-        doc.get("phone_whatsapp"), doc.get("contingent_school"), doc.get("category"),
-        doc.get("age_class"), doc.get("weight_class") or "-", doc.get("official_coach") or "-",
-        doc.get("status"), doc.get("payment_status"), doc.get("created_at"),
-    ]
+    row = build_sheet_row(doc)
 
     def _append():
         meta = service.spreadsheets().get(spreadsheetId=sheet_id).execute()
@@ -466,6 +475,34 @@ async def append_registration_to_sheet(doc: dict):
         ).execute()
 
     await asyncio.to_thread(_append)
+
+
+async def update_sheet_row(doc: dict):
+    service, sheet_id = get_sheets_service()
+    if not service:
+        return
+
+    def _update():
+        meta = service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+        title = meta["sheets"][0]["properties"]["title"]
+        col = service.spreadsheets().values().get(
+            spreadsheetId=sheet_id, range=f"'{title}'!A:A"
+        ).execute().get("values", [])
+        row_idx = next((i + 1 for i, r in enumerate(col) if r and r[0] == doc["reg_number"]), None)
+        if not row_idx:
+            logger.info(f"[SHEETS] Baris {doc['reg_number']} tidak ditemukan, ditambahkan sebagai baris baru")
+            service.spreadsheets().values().append(
+                spreadsheetId=sheet_id, range=f"'{title}'!A1",
+                valueInputOption="RAW", body={"values": [build_sheet_row(doc)]},
+            ).execute()
+            return
+        service.spreadsheets().values().update(
+            spreadsheetId=sheet_id, range=f"'{title}'!K{row_idx}:L{row_idx}",
+            valueInputOption="RAW",
+            body={"values": [[doc.get("status"), doc.get("payment_status")]]},
+        ).execute()
+
+    await asyncio.to_thread(_update)
 
 
 @api_router.get("/admin/sheets/status")
