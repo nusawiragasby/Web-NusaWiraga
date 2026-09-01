@@ -98,6 +98,7 @@ class RegisterInput(BaseModel):
     phone_whatsapp: Optional[str] = None
     member_names: Optional[List[str]] = None
     weight_class: Optional[str] = None
+    height_cm: Optional[float] = None
     official_coach: Optional[str] = None
 
 
@@ -221,8 +222,11 @@ async def send_confirmation_email(reg: dict):
 
 @api_router.post("/register")
 async def register(body: RegisterInput):
-    if "Tanding" in body.category and not body.weight_class:
-        raise HTTPException(status_code=422, detail="Kelas tanding wajib dipilih untuk kategori Tanding")
+    if "Tanding" in body.category:
+        if not body.weight_class:
+            raise HTTPException(status_code=422, detail="Kelas tanding wajib dipilih untuk kategori Tanding")
+        if not body.height_cm:
+            raise HTTPException(status_code=422, detail="Tinggi badan wajib diisi untuk kategori Tanding")
     required_members = 5 if "Berkelompok" in body.category else 2 if "Ganda" in body.category else 0
     if required_members:
         names = [n.strip() for n in (body.member_names or []) if n and n.strip()]
@@ -329,14 +333,14 @@ async def export_csv(user: dict = Depends(get_current_user)):
     rows = await db.registrants.find({}, {"_id": 0}).sort("created_at", 1).to_list(10000)
     buf = io.StringIO()
     writer = csv.writer(buf)
-    writer.writerow(["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Perguruan", "Kategori", "Kelompok Usia", "Kelas", "Pelatih", "Status", "Pembayaran", "Tanggal Daftar"])
+    writer.writerow(["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Perguruan", "Kategori", "Kelompok Usia", "Kelas", "Pelatih", "Status", "Pembayaran", "Tanggal Daftar", "Tinggi Badan (cm)"])
     for r in rows:
         names = ", ".join(r["member_names"]) if r.get("member_names") else r.get("full_name")
         writer.writerow([
             r.get("reg_number"), names, r.get("nik_or_nisn"), r.get("email"),
             r.get("phone_whatsapp"), r.get("contingent_school"), r.get("category"),
             r.get("age_class"), r.get("weight_class") or "-", r.get("official_coach") or "-",
-            r.get("status"), r.get("payment_status"), r.get("created_at"),
+            r.get("status"), r.get("payment_status"), r.get("created_at"), r.get("height_cm") or "-",
         ])
     return StreamingResponse(
         iter([buf.getvalue()]), media_type="text/csv",
@@ -441,7 +445,7 @@ async def delete_sponsor(sponsor_id: str, user: dict = Depends(get_current_user)
     return {"message": "Sponsor dihapus"}
 
 
-SHEET_HEADER = ["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Perguruan", "Kategori", "Kelompok Usia", "Kelas", "Pelatih", "Status", "Pembayaran", "Tanggal Daftar"]
+SHEET_HEADER = ["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Perguruan", "Kategori", "Kelompok Usia", "Kelas", "Pelatih", "Status", "Pembayaran", "Tanggal Daftar", "Tinggi Badan (cm)"]
 
 
 def build_sheet_row(doc: dict) -> list:
@@ -451,6 +455,7 @@ def build_sheet_row(doc: dict) -> list:
         doc.get("phone_whatsapp") or "", doc.get("contingent_school"), doc.get("category"),
         doc.get("age_class"), doc.get("weight_class") or "-", doc.get("official_coach") or "-",
         doc.get("status"), doc.get("payment_status"), doc.get("created_at"),
+        doc.get("height_cm") or "-",
     ]
 
 
@@ -480,8 +485,13 @@ async def append_registration_to_sheet(doc: dict):
         meta = service.spreadsheets().get(spreadsheetId=sheet_id).execute()
         title = meta["sheets"][0]["properties"]["title"]
         existing = service.spreadsheets().values().get(
-            spreadsheetId=sheet_id, range=f"'{title}'!A1:M1"
+            spreadsheetId=sheet_id, range=f"'{title}'!A1:N1"
         ).execute().get("values", [])
+        if existing and len(existing[0]) < len(SHEET_HEADER):
+            service.spreadsheets().values().update(
+                spreadsheetId=sheet_id, range=f"'{title}'!N1",
+                valueInputOption="RAW", body={"values": [["Tinggi Badan (cm)"]]},
+            ).execute()
         values = [row] if existing else [SHEET_HEADER, row]
         service.spreadsheets().values().append(
             spreadsheetId=sheet_id, range=f"'{title}'!A1",

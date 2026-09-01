@@ -12,11 +12,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { api, formatApiError, waLink } from "@/lib/api";
 
 const CATEGORIES = ["Tanding Putra", "Tanding Putri", "Seni Tunggal Putra", "Seni Tunggal Putri", "Seni Ganda", "Berkelompok (Jurus Baku)"];
-const AGE_CLASSES = ["Usia Dini (7-11 Thn)", "Pra Remaja (12-14 Thn)", "Remaja (14-17 Thn)", "Dewasa (17-35 Thn)"];
+const AGE_CLASSES = ["Usia Dini (7-11 Thn)", "Pra Remaja (12-14 Thn)"];
 const WEIGHT_CLASSES = ["Kelas A (39-43 kg)", "Kelas B (43-47 kg)", "Kelas C (47-51 kg)", "Kelas D (51-55 kg)", "Kelas E (55-59 kg)", "Kelas F (59-63 kg)", "Bebas (>63 kg)"];
 
 const INITIAL = {
-  full_name: "", contingent_school: "", category: "", age_class: "", weight_class: "", official_coach: "",
+  full_name: "", contingent_school: "", category: "", age_class: "", weight_class: "", height_cm: "", official_coach: "",
 };
 const INITIAL_MEMBERS = ["", "", "", ""];
 
@@ -127,6 +127,13 @@ export default function RegisterPage() {
                       {WEIGHT_CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+              {isTanding && (
+                <div className="space-y-2">
+                  <Label htmlFor="height_cm">Tinggi Badan (cm)</Label>
+                  <Input id="height_cm" type="number" min="100" max="220" required data-testid="reg-height-input" className={inputCls}
+                    value={form.height_cm} onChange={set("height_cm")} placeholder="cth: 145" />
                 </div>
               )}
               <div className="space-y-2">

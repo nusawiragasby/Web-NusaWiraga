@@ -225,7 +225,7 @@ export default function AdminDashboard() {
                     {r.member_names?.length > 0 && (
                       <div className="mt-0.5 max-w-xs text-xs text-slate-400">{r.member_names.slice(1).join(", ")}</div>
                     )}
-                    <div className="text-xs text-slate-500">{r.age_class}{r.weight_class ? ` · ${r.weight_class}` : ""}</div>
+                    <div className="text-xs text-slate-500">{r.age_class}{r.weight_class ? ` · ${r.weight_class}` : ""}{r.height_cm ? ` · ${r.height_cm} cm` : ""}</div>
                   </TableCell>
                   <TableCell className="text-sm text-slate-300">{r.contingent_school}</TableCell>
                   <TableCell className="text-sm text-slate-300">{r.category}</TableCell>
