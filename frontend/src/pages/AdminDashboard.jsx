@@ -13,7 +13,7 @@ import { ResultsManager } from "@/components/admin/ResultsManager";
 import { SponsorsManager } from "@/components/admin/SponsorsManager";
 import { api, API_BASE, formatApiError, waAthleteLink } from "@/lib/api";
 
-const CATEGORIES = ["Tanding Putra", "Tanding Putri", "Seni Tunggal Putra", "Seni Tunggal Putri", "Seni Ganda", "Seni Regu (TGR)"];
+const CATEGORIES = ["Tanding Putra", "Tanding Putri", "Seni Tunggal Putra", "Seni Tunggal Putri", "Seni Ganda", "Berkelompok (Jurus Baku)"];
 const STATUS_LABEL = { menunggu: "Menunggu", terverifikasi: "Terverifikasi", ditolak: "Ditolak" };
 const STATUS_STYLE = {
   menunggu: "bg-amber-500/15 text-amber-400 border-amber-500/30",
@@ -251,11 +251,13 @@ export default function AdminDashboard() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <a href={waAthleteLink(r.phone_whatsapp, r.full_name, r.reg_number)} target="_blank" rel="noopener noreferrer"
-                        data-testid={`admin-wa-btn-${r.reg_number}`} aria-label="WhatsApp atlet"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2E2E3A] text-amber-400 hover:bg-[#1C1C24]">
-                        <MessageCircle className="h-4 w-4" />
-                      </a>
+                      {r.phone_whatsapp && (
+                        <a href={waAthleteLink(r.phone_whatsapp, r.full_name, r.reg_number)} target="_blank" rel="noopener noreferrer"
+                          data-testid={`admin-wa-btn-${r.reg_number}`} aria-label="WhatsApp atlet"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2E2E3A] text-amber-400 hover:bg-[#1C1C24]">
+                          <MessageCircle className="h-4 w-4" />
+                        </a>
+                      )}
                       <button onClick={() => remove(r.id, r.full_name)} data-testid={`admin-delete-btn-${r.reg_number}`} aria-label="Hapus pendaftar"
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2E2E3A] text-red-400 hover:bg-[#1C1C24]">
                         <Trash2 className="h-4 w-4" />

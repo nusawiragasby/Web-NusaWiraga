@@ -11,13 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { api, formatApiError, waLink } from "@/lib/api";
 
-const CATEGORIES = ["Tanding Putra", "Tanding Putri", "Seni Tunggal Putra", "Seni Tunggal Putri", "Seni Ganda", "Seni Regu (TGR)"];
+const CATEGORIES = ["Tanding Putra", "Tanding Putri", "Seni Tunggal Putra", "Seni Tunggal Putri", "Seni Ganda", "Berkelompok (Jurus Baku)"];
 const AGE_CLASSES = ["Usia Dini (7-11 Thn)", "Pra Remaja (12-14 Thn)", "Remaja (14-17 Thn)", "Dewasa (17-35 Thn)"];
 const WEIGHT_CLASSES = ["Kelas A (39-43 kg)", "Kelas B (43-47 kg)", "Kelas C (47-51 kg)", "Kelas D (51-55 kg)", "Kelas E (55-59 kg)", "Kelas F (59-63 kg)", "Bebas (>63 kg)"];
 
 const INITIAL = {
-  full_name: "", nik_or_nisn: "", email: "", phone_whatsapp: "",
-  contingent_school: "", category: "", age_class: "", weight_class: "", official_coach: "",
+  full_name: "", contingent_school: "", category: "", age_class: "", weight_class: "", official_coach: "",
 };
 
 const inputCls = "border-[#2E2E3A] bg-[#0B0B0E] text-slate-100 placeholder:text-slate-500 focus-visible:ring-amber-500";
@@ -75,7 +74,7 @@ export default function RegisterPage() {
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-2xl">
             <Link to="/" className="text-sm text-slate-400 hover:text-amber-400" data-testid="register-back-link">&larr; Kembali ke Beranda</Link>
             <h2 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">Formulir Pendaftaran Atlet</h2>
-            <p className="mt-2 text-sm text-slate-400">Lengkapi data berikut. Email konfirmasi akan dikirim setelah pendaftaran terkirim.</p>
+            <p className="mt-2 text-sm text-slate-400">Lengkapi data berikut. Panitia akan menghubungi kontingen Anda untuk verifikasi pembayaran & berkas.</p>
             <form onSubmit={submit} className="mt-8 grid gap-5 sm:grid-cols-2" data-testid="register-form">
               <div className="space-y-2">
                 <Label htmlFor="full_name">Nama Lengkap Atlet</Label>
@@ -83,21 +82,6 @@ export default function RegisterPage() {
                   value={form.full_name} onChange={set("full_name")} placeholder="cth: Bima Sakti Pratama" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nik">NIK / NISN / No. Identitas</Label>
-                <Input id="nik" required data-testid="reg-nik-input" className={inputCls}
-                  value={form.nik_or_nisn} onChange={set("nik_or_nisn")} placeholder="16 digit NIK / NISN" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Alamat Email Aktif</Label>
-                <Input id="email" type="email" required data-testid="reg-email-input" className={inputCls}
-                  value={form.email} onChange={set("email")} placeholder="atlet@email.com" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">No. WhatsApp Aktif</Label>
-                <Input id="phone" type="tel" required data-testid="reg-phone-input" className={inputCls}
-                  value={form.phone_whatsapp} onChange={set("phone_whatsapp")} placeholder="08xxxxxxxxxx" />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="school">Kontingen / Asal Sekolah</Label>
                 <Input id="school" required data-testid="reg-contingent-input" className={inputCls}
                   value={form.contingent_school} onChange={set("contingent_school")} placeholder="cth: PS Macan Nusantara" />
@@ -155,8 +139,8 @@ export default function RegisterPage() {
             </div>
             <DialogTitle className="text-center font-display text-xl">Pendaftaran Berhasil Dikirim!</DialogTitle>
             <DialogDescription className="text-center text-slate-400">
-              Nomor registrasi unik Anda telah dibuat. Email konfirmasi telah dikirim dan panitia akan
-              menghubungi Anda via WhatsApp untuk verifikasi pembayaran & berkas.
+              Nomor registrasi unik Anda telah dibuat. Simpan nomor ini — panitia akan
+              menghubungi kontingen Anda untuk verifikasi pembayaran & berkas.
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-2xl border border-amber-500/30 bg-[#0B0B0E] p-5 text-center">

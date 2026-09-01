@@ -6,7 +6,7 @@ const CATEGORIES = [
   { icon: Swords, name: "Tanding Putra / Putri", desc: "Kelas A - F dan Kelas Bebas, usia dini hingga dewasa.", fee: "Rp 250.000 / atlet" },
   { icon: User, name: "Seni Tunggal", desc: "Jurus wajib tunggal putra & putri dengan senjata.", fee: "Rp 250.000 / atlet" },
   { icon: Users, name: "Seni Ganda", desc: "Koreografi jurus berpasangan dengan serang bela.", fee: "Rp 400.000 / pasangan" },
-  { icon: Users, name: "Seni Regu (TGR)", desc: "Kekompakan 3 pesilat dalam jurus regu.", fee: "Rp 500.000 / regu" },
+  { icon: Users, name: "Seni Berkelompok (Jurus Baku)", desc: "Kekompakan regu dalam jurus baku.", fee: "Rp 500.000 / regu" },
 ];
 
 export const CategoriesSection = () => (

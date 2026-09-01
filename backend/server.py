@@ -90,12 +90,12 @@ class LoginInput(BaseModel):
 
 class RegisterInput(BaseModel):
     full_name: str
-    nik_or_nisn: str
-    email: EmailStr
-    phone_whatsapp: str
     contingent_school: str
     category: str
     age_class: str
+    nik_or_nisn: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone_whatsapp: Optional[str] = None
     weight_class: Optional[str] = None
     official_coach: Optional[str] = None
 
@@ -235,7 +235,8 @@ async def register(body: RegisterInput):
     await db.registrants.insert_one(doc)
     doc.pop("_id", None)
     try:
-        await send_confirmation_email(doc)
+        if doc.get("email"):
+            await send_confirmation_email(doc)
     except Exception as e:
         logger.error(f"Gagal mengirim email konfirmasi: {e}")
     try:

@@ -23,7 +23,7 @@
 
 ## Yang Sudah Diimplementasikan (2026-09-01)
 - Landing page lengkap: Hero (countdown ke 12 Okt 2026, statistik), Profil & Visi, Kategori & Biaya, Hasil Pertandingan (placeholder gelanggang A/B/C), Berita, Galeri bento, Sponsor 3 tier, Footer, widget WhatsApp melayang
-- Halaman /daftar: form lengkap (nama, NIK/NISN, email, WA, perguruan, kategori, kelompok usia, kelas tanding kondisional, pelatih), validasi, modal sukses dengan nomor registrasi + tombol WA
+- Halaman /daftar: form ringkas (nama, kontingen/asal sekolah, kategori, kelompok usia, kelas tanding kondisional, pelatih) — kolom NIK/email/WhatsApp dihapus atas permintaan user (2026-09-01); modal sukses dengan nomor registrasi + tombol WA. Kategori "Seni Regu (TGR)" diganti "Berkelompok (Jurus Baku)" (2026-09-01). Email konfirmasi kini tidak terkirim karena peserta tidak mengisi email (fitur Resend standby bila kolom email dikembalikan)
 - Backend: POST /api/register, auth admin (login/logout/me, proteksi brute-force 5x/15 mnt), admin stats, list (search+filter), PATCH status/pembayaran, DELETE, export CSV
 - Admin dashboard /admin: kartu statistik, badge per kategori, tabel dengan filter/pencarian, ubah status & pembayaran, hapus, WA atlet, export CSV
 - SEO: komponen Seo, canonical/og dinamis, JSON-LD SportsEvent, llms.txt
