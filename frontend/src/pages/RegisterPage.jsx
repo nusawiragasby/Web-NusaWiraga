@@ -98,7 +98,7 @@ export default function RegisterPage() {
                   value={form.phone_whatsapp} onChange={set("phone_whatsapp")} placeholder="08xxxxxxxxxx" />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="school">Nama Perguruan / Kontingen / Sekolah</Label>
+                <Label htmlFor="school">Kontingen / Asal Sekolah</Label>
                 <Input id="school" required data-testid="reg-contingent-input" className={inputCls}
                   value={form.contingent_school} onChange={set("contingent_school")} placeholder="cth: PS Macan Nusantara" />
               </div>
