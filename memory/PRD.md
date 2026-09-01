@@ -31,7 +31,7 @@
 
 ## Backlog Prioritas
 ### P0
-- Isi RESEND_API_KEY agar email konfirmasi benar-benar terkirim (saat ini hanya log/mock)
+- ~~Isi RESEND_API_KEY~~ SELESAI (2026-09-01): email konfirmasi aktif via Resend, pengirim onboarding@resend.dev. Catatan: mode uji Resend hanya mengirim ke email pemilik akun — verifikasi domain untuk produksi
 - Ganti nomor WhatsApp panitia & data kontak (masih placeholder 6281234567890)
 
 ### P1
