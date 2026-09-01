@@ -28,7 +28,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const isTanding = form.category.includes("Tanding");
-  const isGroup = form.category.includes("Berkelompok");
+  const groupSize = form.category.includes("Berkelompok") ? 5 : form.category.includes("Ganda") ? 2 : 0;
+  const isGroup = groupSize > 0;
   const set = (k) => (e) => setForm({ ...form, [k]: e.target ? e.target.value : e });
   const setMember = (i) => (e) => setMembers(members.map((m, j) => (j === i ? e.target.value : m)));
 
@@ -37,7 +38,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const payload = { ...form };
-      if (isGroup) payload.member_names = [form.full_name, ...members];
+      if (isGroup) payload.member_names = [form.full_name, ...members.slice(0, groupSize - 1)];
       const { data } = await api.post("/register", payload);
       setResult(data);
       toast.success("Pendaftaran berhasil dikirim!");
@@ -83,7 +84,7 @@ export default function RegisterPage() {
             <p className="mt-2 text-sm text-slate-400">Lengkapi data berikut. Panitia akan menghubungi kontingen Anda untuk verifikasi pembayaran & berkas.</p>
             <form onSubmit={submit} className="mt-8 grid gap-5 sm:grid-cols-2" data-testid="register-form">
               <div className="space-y-2">
-                <Label htmlFor="full_name">{isGroup ? "Nama Anggota 1 (Ketua Regu)" : "Nama Lengkap Atlet"}</Label>
+                <Label htmlFor="full_name">{isGroup ? `Nama Anggota 1${groupSize === 5 ? " (Ketua Regu)" : ""}` : "Nama Lengkap Atlet"}</Label>
                 <Input id="full_name" required data-testid="reg-fullname-input" className={inputCls}
                   value={form.full_name} onChange={set("full_name")} placeholder="cth: Bima Sakti Pratama" />
               </div>
@@ -110,7 +111,7 @@ export default function RegisterPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {isGroup && members.map((m, i) => (
+              {isGroup && members.slice(0, groupSize - 1).map((m, i) => (
                 <div className="space-y-2" key={i}>
                   <Label htmlFor={`member-${i + 2}`}>Nama Anggota {i + 2}</Label>
                   <Input id={`member-${i + 2}`} required data-testid={`reg-member-${i + 2}-input`} className={inputCls}

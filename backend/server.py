@@ -223,10 +223,11 @@ async def send_confirmation_email(reg: dict):
 async def register(body: RegisterInput):
     if "Tanding" in body.category and not body.weight_class:
         raise HTTPException(status_code=422, detail="Kelas tanding wajib dipilih untuk kategori Tanding")
-    if "Berkelompok" in body.category:
+    required_members = 5 if "Berkelompok" in body.category else 2 if "Ganda" in body.category else 0
+    if required_members:
         names = [n.strip() for n in (body.member_names or []) if n and n.strip()]
-        if len(names) != 5:
-            raise HTTPException(status_code=422, detail="Kategori Berkelompok wajib diisi tepat 5 nama anggota")
+        if len(names) != required_members:
+            raise HTTPException(status_code=422, detail=f"Kategori {body.category} wajib diisi tepat {required_members} nama anggota")
         body.member_names = names
     existing_numbers = await db.registrants.distinct("reg_number")
     nums = [int(r.split("-")[1]) for r in existing_numbers if r and r.startswith("NW26-") and r.split("-")[1].isdigit()]
