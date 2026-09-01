@@ -313,9 +313,14 @@ async def update_registrant(reg_id: str, body: RegistrantUpdate, user: dict = De
 
 @api_router.delete("/admin/registrants/{reg_id}")
 async def delete_registrant(reg_id: str, user: dict = Depends(get_current_user)):
+    doc = await db.registrants.find_one({"id": reg_id}, {"_id": 0, "reg_number": 1})
     result = await db.registrants.delete_one({"id": reg_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Pendaftar tidak ditemukan")
+    try:
+        await delete_sheet_row(doc["reg_number"])
+    except Exception as e:
+        logger.error(f"Gagal menghapus baris di Google Sheets: {e}")
     return {"message": "Pendaftar dihapus"}
 
 
@@ -512,6 +517,32 @@ async def update_sheet_row(doc: dict):
         ).execute()
 
     await asyncio.to_thread(_update)
+
+
+async def delete_sheet_row(reg_number: str):
+    service, sheet_id = get_sheets_service()
+    if not service:
+        return
+
+    def _delete():
+        meta = service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+        sheet = meta["sheets"][0]["properties"]
+        col = service.spreadsheets().values().get(
+            spreadsheetId=sheet_id, range=f"'{sheet['title']}'!A:A"
+        ).execute().get("values", [])
+        row_idx = next((i for i, r in enumerate(col) if r and r[0] == reg_number), None)
+        if row_idx is None:
+            logger.info(f"[SHEETS] Baris {reg_number} tidak ditemukan untuk dihapus")
+            return
+        service.spreadsheets().batchUpdate(
+            spreadsheetId=sheet_id,
+            body={"requests": [{"deleteDimension": {"range": {
+                "sheetId": sheet["sheetId"], "dimension": "ROWS",
+                "startIndex": row_idx, "endIndex": row_idx + 1,
+            }}}]},
+        ).execute()
+
+    await asyncio.to_thread(_delete)
 
 
 @api_router.get("/admin/sheets/status")

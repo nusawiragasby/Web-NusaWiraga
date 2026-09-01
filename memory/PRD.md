@@ -31,7 +31,7 @@
 - (2026-09-01) Email konfirmasi Resend AKTIF (pengirim onboarding@resend.dev; mode uji = hanya ke email pemilik akun Resend)
 - (2026-09-01) CMS Admin: tab Berita (tulis/ubah/hapus, 3 berita awal ter-seed), tab Hasil & Juara (input juara emas/perak/perunggu per kategori/divisi), tab Sponsor (upload logo maks 500KB base64, 3 tier). Beranda publik otomatis menampilkan data CMS: berita dari DB, papan juara menggantikan placeholder gelanggang saat ada data, logo sponsor menggantikan slot placeholder
 
-- (2026-09-01) Integrasi Google Sheets AKTIF dua arah: pendaftar baru otomatis di-append; perubahan status verifikasi/lunas di admin otomatis memperbarui baris yang sama di spreadsheet (kolom Status & Pembayaran, dicari berdasarkan nomor registrasi; baris baru dibuat bila tidak ketemu). Nomor registrasi memakai max+1 (tahan terhadap penghapusan data)
+- (2026-09-01) Integrasi Google Sheets AKTIF dua arah + hapus: pendaftar baru otomatis di-append; perubahan status verifikasi/lunas memperbarui kolom Status & Pembayaran di baris yang sama; penghapusan pendaftar di admin ikut menghapus barisnya di spreadsheet (deleteDimension by reg_number). Nomor registrasi memakai max+1 (tahan terhadap penghapusan data). CATATAN: ada 2 baris duplikat NW26-0009 di sheet dari uji coba user sebelum perbaikan penomoran — perlu dibersihkan manual oleh user bila mengganggu
 
 ## Backlog Prioritas
 ### P0
