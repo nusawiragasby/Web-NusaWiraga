@@ -13,7 +13,8 @@ from typing import Optional, List
 
 import bcrypt
 import jwt
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
+import requests
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, UploadFile, File
 from fastapi.responses import StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -348,6 +349,47 @@ async def export_csv(user: dict = Depends(get_current_user)):
     )
 
 
+# ---------- Upload Berkas Pendaftar ----------
+@api_router.post("/register/{reg_id}/files")
+async def upload_registration_files(
+    reg_id: str,
+    data_diri: Optional[UploadFile] = File(None),
+    surat_sehat: Optional[UploadFile] = File(None),
+    foto: Optional[UploadFile] = File(None),
+):
+    reg = await db.registrants.find_one({"id": reg_id})
+    if not reg:
+        raise HTTPException(status_code=404, detail="Pendaftar tidak ditemukan")
+    uploads = {}
+    for kind, file in (("data_diri", data_diri), ("surat_sehat", surat_sehat), ("foto", foto)):
+        if not file or not file.filename:
+            continue
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+        if ext not in FILE_KINDS[kind]:
+            raise HTTPException(status_code=422, detail=f"Format {kind} tidak didukung (PDF/JPG/PNG)")
+        data = await file.read()
+        if len(data) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=422, detail=f"Ukuran {kind} maksimal 5 MB")
+        path = f"{APP_NAME}/uploads/{reg_id}/{kind}.{ext}"
+        result = await asyncio.to_thread(put_object, path, data, file.content_type or "application/octet-stream")
+        uploads[kind] = {"path": result["path"], "filename": file.filename}
+    if uploads:
+        await db.registrants.update_one({"id": reg_id}, {"$set": {f"files.{k}": v for k, v in uploads.items()}})
+    return {"message": "Berkas terunggah", "files": list(uploads.keys())}
+
+
+@api_router.get("/admin/files/{reg_id}/{kind}")
+async def admin_download_file(reg_id: str, kind: str, user: dict = Depends(get_current_user)):
+    if kind not in FILE_KINDS:
+        raise HTTPException(status_code=404, detail="Berkas tidak ditemukan")
+    reg = await db.registrants.find_one({"id": reg_id}, {"_id": 0})
+    ref = (reg or {}).get("files", {}).get(kind)
+    if not ref:
+        raise HTTPException(status_code=404, detail="Berkas tidak ditemukan")
+    data, content_type = await asyncio.to_thread(get_object, ref["path"])
+    return Response(content=data, media_type=content_type)
+
+
 # ---------- Konten Publik ----------
 @api_router.get("/news")
 async def public_news():
@@ -446,6 +488,46 @@ async def delete_sponsor(sponsor_id: str, user: dict = Depends(get_current_user)
 
 
 SHEET_HEADER = ["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Perguruan", "Kategori", "Kelompok Usia", "Kelas", "Pelatih", "Status", "Pembayaran", "Tanggal Daftar", "Tinggi Badan (cm)"]
+
+STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
+STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
+APP_NAME = "nusa-wiraga"
+storage_key = None
+
+
+def init_storage(force: bool = False):
+    global storage_key
+    if storage_key and not force:
+        return storage_key
+    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": os.environ.get("EMERGENT_LLM_KEY")}, timeout=30)
+    resp.raise_for_status()
+    storage_key = resp.json()["storage_key"]
+    return storage_key
+
+
+def put_object(path: str, data: bytes, content_type: str) -> dict:
+    key = init_storage()
+    resp = requests.put(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={"X-Storage-Key": key, "Content-Type": content_type},
+        data=data, timeout=120,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def get_object(path: str):
+    key = init_storage()
+    resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": key}, timeout=60)
+    resp.raise_for_status()
+    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+
+
+FILE_KINDS = {
+    "data_diri": {"pdf", "jpg", "jpeg", "png"},
+    "surat_sehat": {"pdf", "jpg", "jpeg", "png"},
+    "foto": {"jpg", "jpeg", "png"},
+}
 
 
 def build_sheet_row(doc: dict) -> list:
@@ -623,6 +705,11 @@ async def startup():
     await db.registrants.create_index("reg_number", unique=True)
     await seed_admin()
     await seed_news()
+    try:
+        init_storage()
+        logger.info("Object storage siap")
+    except Exception as e:
+        logger.error(f"Storage init gagal: {e}")
 
 
 @app.on_event("shutdown")

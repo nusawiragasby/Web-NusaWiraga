@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Swords, Users, CheckCircle2, Clock, Wallet, Download, LogOut, Search, Trash2, MessageCircle, Loader2, Sheet } from "lucide-react";
+import { Swords, Users, CheckCircle2, Clock, Wallet, Download, LogOut, Search, Trash2, MessageCircle, Loader2, Sheet, FileText, HeartPulse, Image as ImageIcon } from "lucide-react";
 import Seo from "@/components/Seo";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -254,6 +254,27 @@ export default function AdminDashboard() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      {r.files?.data_diri && (
+                        <a href={`${API_BASE}/admin/files/${r.id}/data_diri`} target="_blank" rel="noopener noreferrer"
+                          data-testid={`admin-file-datadiri-${r.reg_number}`} aria-label="Berkas data diri" title="Data Diri"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2E2E3A] text-slate-300 hover:bg-[#1C1C24]">
+                          <FileText className="h-4 w-4" />
+                        </a>
+                      )}
+                      {r.files?.surat_sehat && (
+                        <a href={`${API_BASE}/admin/files/${r.id}/surat_sehat`} target="_blank" rel="noopener noreferrer"
+                          data-testid={`admin-file-suratsehat-${r.reg_number}`} aria-label="Surat keterangan sehat" title="Surat Sehat"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2E2E3A] text-slate-300 hover:bg-[#1C1C24]">
+                          <HeartPulse className="h-4 w-4" />
+                        </a>
+                      )}
+                      {r.files?.foto && (
+                        <a href={`${API_BASE}/admin/files/${r.id}/foto`} target="_blank" rel="noopener noreferrer"
+                          data-testid={`admin-file-foto-${r.reg_number}`} aria-label="Pas foto" title="Pas Foto"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2E2E3A] text-slate-300 hover:bg-[#1C1C24]">
+                          <ImageIcon className="h-4 w-4" />
+                        </a>
+                      )}
                       {r.phone_whatsapp && (
                         <a href={waAthleteLink(r.phone_whatsapp, r.full_name, r.reg_number)} target="_blank" rel="noopener noreferrer"
                           data-testid={`admin-wa-btn-${r.reg_number}`} aria-label="WhatsApp atlet"

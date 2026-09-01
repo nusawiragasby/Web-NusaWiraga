@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Swords, CheckCircle2, MessageCircle, Loader2 } from "lucide-react";
+import { Swords, CheckCircle2, MessageCircle, Loader2, FileUp } from "lucide-react";
 import Seo from "@/components/Seo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,12 +19,18 @@ const INITIAL = {
   full_name: "", contingent_school: "", category: "", age_class: "", weight_class: "", height_cm: "", official_coach: "",
 };
 const INITIAL_MEMBERS = ["", "", "", ""];
+const FILE_FIELDS = [
+  { key: "data_diri", label: "Data Diri (KK/Ijazah/Rapor)", accept: ".pdf,.jpg,.jpeg,.png" },
+  { key: "surat_sehat", label: "Surat Keterangan Sehat", accept: ".pdf,.jpg,.jpeg,.png" },
+  { key: "foto", label: "Pas Foto", accept: ".jpg,.jpeg,.png" },
+];
 
 const inputCls = "border-[#2E2E3A] bg-[#0B0B0E] text-slate-100 placeholder:text-slate-500 focus-visible:ring-amber-500";
 
 export default function RegisterPage() {
   const [form, setForm] = useState(INITIAL);
   const [members, setMembers] = useState(INITIAL_MEMBERS);
+  const [files, setFiles] = useState({});
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const isTanding = form.category.includes("Tanding");
@@ -33,6 +39,13 @@ export default function RegisterPage() {
   const set = (k) => (e) => setForm({ ...form, [k]: e.target ? e.target.value : e });
   const setMember = (i) => (e) => setMembers(members.map((m, j) => (j === i ? e.target.value : m)));
 
+  const pickFile = (key) => (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) return toast.error("Ukuran file maksimal 5 MB");
+    setFiles({ ...files, [key]: f });
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -40,6 +53,15 @@ export default function RegisterPage() {
       const payload = { ...form };
       if (isGroup) payload.member_names = [form.full_name, ...members.slice(0, groupSize - 1)];
       const { data } = await api.post("/register", payload);
+      if (Object.keys(files).length > 0) {
+        try {
+          const fd = new FormData();
+          Object.entries(files).forEach(([k, f]) => f && fd.append(k, f));
+          await api.post(`/register/${data.id}/files`, fd);
+        } catch (uploadErr) {
+          toast.warning(`Pendaftaran tersimpan, tetapi berkas gagal terunggah: ${formatApiError(uploadErr)}`);
+        }
+      }
       setResult(data);
       toast.success("Pendaftaran berhasil dikirim!");
     } catch (err) {
@@ -140,6 +162,23 @@ export default function RegisterPage() {
                 <Label htmlFor="coach">Nama Pelatih / Official (opsional)</Label>
                 <Input id="coach" data-testid="reg-coach-input" className={inputCls}
                   value={form.official_coach} onChange={set("official_coach")} placeholder="cth: Guru H. Rahmat" />
+              </div>
+              <div className="space-y-3 sm:col-span-2">
+                <Label>Berkas Pendukung (PDF/JPG/PNG, maks 5 MB per berkas)</Label>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {FILE_FIELDS.map((f) => (
+                    <label key={f.key} data-testid={`reg-file-${f.key}-picker`}
+                      className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-[#2E2E3A] bg-[#0B0B0E] px-3 py-4 text-center transition-colors hover:border-amber-500/40">
+                      <FileUp className="h-5 w-5 text-amber-400" />
+                      <span className="text-xs font-semibold text-slate-300">{f.label}</span>
+                      <span className="max-w-full truncate text-[10px] text-slate-500" data-testid={`reg-file-${f.key}-name`}>
+                        {files[f.key] ? files[f.key].name : "Klik untuk pilih file"}
+                      </span>
+                      <input type="file" accept={f.accept} className="hidden" data-testid={`reg-file-${f.key}-input`}
+                        onChange={pickFile(f.key)} />
+                    </label>
+                  ))}
+                </div>
               </div>
               <div className="sm:col-span-2">
                 <Button type="submit" disabled={loading} data-testid="reg-submit-btn"

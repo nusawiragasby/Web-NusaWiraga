@@ -31,6 +31,7 @@
 - (2026-09-01) Email konfirmasi Resend AKTIF (pengirim onboarding@resend.dev; mode uji = hanya ke email pemilik akun Resend)
 - (2026-09-01) CMS Admin: tab Berita (tulis/ubah/hapus, 3 berita awal ter-seed), tab Hasil & Juara (input juara emas/perak/perunggu per kategori/divisi), tab Sponsor (upload logo maks 500KB base64, 3 tier). Beranda publik otomatis menampilkan data CMS: berita dari DB, papan juara menggantikan placeholder gelanggang saat ada data, logo sponsor menggantikan slot placeholder
 
+- (2026-09-01) Upload berkas pendaftar via Emergent Object Storage: 3 berkas opsional di form (data diri PDF/JPG/PNG, surat sehat PDF/JPG/PNG, pas foto JPG/PNG, maks 5MB), diunggah setelah registrasi ke POST /api/register/{id}/files; referensi tersimpan di doc registrant (files.data_diri/surat_sehat/foto); admin membuka berkas via GET /api/admin/files/{id}/{kind} (terproteksi login, ikon per baris di tabel)
 - (2026-09-01) Integrasi Google Sheets AKTIF dua arah + hapus: pendaftar baru otomatis di-append; perubahan status verifikasi/lunas memperbarui kolom Status & Pembayaran di baris yang sama; penghapusan pendaftar di admin ikut menghapus barisnya di spreadsheet (deleteDimension by reg_number). Nomor registrasi memakai max+1 (tahan terhadap penghapusan data). CATATAN: ada 2 baris duplikat NW26-0009 di sheet dari uji coba user sebelum perbaikan penomoran — perlu dibersihkan manual oleh user bila mengganggu
 
 ## Backlog Prioritas
