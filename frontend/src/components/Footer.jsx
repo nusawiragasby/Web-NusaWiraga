@@ -29,7 +29,8 @@ export const Footer = () => (
         <h3 className="text-sm font-bold uppercase tracking-wider text-amber-400">Sekretariat</h3>
         <ul className="mt-4 space-y-3 text-sm text-slate-300">
           <li className="flex gap-2"><MapPin className="h-4 w-4 shrink-0 text-amber-400" /> GOR Patriot Candrabhaga, Bekasi, Jawa Barat</li>
-          <li className="flex gap-2"><Phone className="h-4 w-4 shrink-0 text-amber-400" /> +62 812-3456-7890 (WhatsApp Panitia)</li>
+          <li className="flex gap-2"><Phone className="h-4 w-4 shrink-0 text-amber-400" /> 0851-0047-6404 (Nayla)</li>
+          <li className="flex gap-2"><Phone className="h-4 w-4 shrink-0 text-amber-400" /> 0838-4895-6603 (Alfian)</li>
           <li className="flex gap-2"><Mail className="h-4 w-4 shrink-0 text-amber-400" /> panitia@nusawiraga.id</li>
         </ul>
       </div>

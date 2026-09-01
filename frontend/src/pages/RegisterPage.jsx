@@ -218,6 +218,11 @@ export default function RegisterPage() {
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-extrabold text-stone-900">
               <MessageCircle className="h-4 w-4" /> Konfirmasi via WhatsApp
             </a>
+            <a href={waLink(`Halo Panitia Nusa Wiraga, saya ${form.full_name} (${result?.reg_number}) ingin konfirmasi pendaftaran.`, 1)}
+              target="_blank" rel="noopener noreferrer" data-testid="reg-success-wa-btn-2"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-amber-500/40 px-4 py-3 text-sm font-bold text-amber-300 hover:bg-[#800E19]/30">
+              <MessageCircle className="h-4 w-4" /> WA Alfian
+            </a>
             <Link to="/" data-testid="reg-success-home-btn"
               className="flex flex-1 items-center justify-center rounded-xl border border-[#2E2E3A] px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-[#1C1C24]">
               Kembali ke Beranda

@@ -70,8 +70,13 @@ export const Hero = () => {
           </Link>
           <a href={waLink("Halo Panitia Nusa Wiraga, saya ingin bertanya seputar pendaftaran.")}
             target="_blank" rel="noopener noreferrer" data-testid="hero-whatsapp-cta"
-            className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-[#13131A]/60 px-8 py-4 font-display text-base font-bold text-amber-300 backdrop-blur transition-colors hover:bg-[#800E19]/40">
-            <MessageCircle className="h-5 w-5" /> Hubungi Panitia
+            className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-[#13131A]/60 px-6 py-4 font-display text-base font-bold text-amber-300 backdrop-blur transition-colors hover:bg-[#800E19]/40">
+            <MessageCircle className="h-5 w-5" /> Panitia: Nayla
+          </a>
+          <a href={waLink("Halo Panitia Nusa Wiraga, saya ingin bertanya seputar pendaftaran.", 1)}
+            target="_blank" rel="noopener noreferrer" data-testid="hero-whatsapp-cta-2"
+            className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-[#13131A]/60 px-6 py-4 font-display text-base font-bold text-amber-300 backdrop-blur transition-colors hover:bg-[#800E19]/40">
+            <MessageCircle className="h-5 w-5" /> Panitia: Alfian
           </a>
         </motion.div>
         <div className="mt-16 grid grid-cols-2 gap-4 lg:grid-cols-4">

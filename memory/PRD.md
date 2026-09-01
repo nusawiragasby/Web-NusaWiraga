@@ -36,8 +36,9 @@
 
 ## Backlog Prioritas
 ### P0
-- Ganti nomor WhatsApp panitia & data kontak (masih placeholder 6281234567890)
-- Verifikasi domain di Resend agar email sampai ke semua pendaftar
+- ~~Nomor WA panitia~~ SELESAI (2026-09-01): Nayla 085100476404 & Alfian 083848956603 terpasang di hero, widget melayang, footer, modal sukses, CTA sponsor
+- ~~Berkas wajib~~ SELESAI (2026-09-01): 3 berkas wajib diisi sebelum pendaftaran terkirim (validasi di form)
+- Verifikasi domain di Resend agar email sampai ke semua pendaftar (bila kolom email dikembalikan)
 
 ### P1
 - Bagan pertandingan (bracket) visual per kelas

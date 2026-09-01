@@ -12,8 +12,12 @@ export function formatApiError(e) {
   return "Terjadi kesalahan. Silakan coba lagi.";
 }
 
-export const WA_NUMBER = "6281234567890";
-export const waLink = (msg) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+export const WA_CONTACTS = [
+  { name: "Nayla", number: "6285100476404" },
+  { name: "Alfian", number: "6283848956603" },
+];
+export const waLink = (msg, contact = 0) =>
+  `https://wa.me/${WA_CONTACTS[contact].number}?text=${encodeURIComponent(msg)}`;
 
 export const waAthleteLink = (phone, name, regNumber) => {
   const digits = String(phone || "").replace(/\D/g, "").replace(/^0/, "62");
