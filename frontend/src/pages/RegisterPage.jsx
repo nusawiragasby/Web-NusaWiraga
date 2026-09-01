@@ -88,6 +88,13 @@ export default function RegisterPage() {
                 <Input id="full_name" required data-testid="reg-fullname-input" className={inputCls}
                   value={form.full_name} onChange={set("full_name")} placeholder="cth: Bima Sakti Pratama" />
               </div>
+              {isGroup && members.slice(0, groupSize - 1).map((m, i) => (
+                <div className="space-y-2" key={i}>
+                  <Label htmlFor={`member-${i + 2}`}>Nama Anggota {i + 2}</Label>
+                  <Input id={`member-${i + 2}`} required data-testid={`reg-member-${i + 2}-input`} className={inputCls}
+                    value={m} onChange={setMember(i)} placeholder={`cth: Nama anggota ${i + 2}`} />
+                </div>
+              ))}
               <div className="space-y-2">
                 <Label htmlFor="school">Kontingen / Asal Sekolah</Label>
                 <Input id="school" required data-testid="reg-contingent-input" className={inputCls}
@@ -111,13 +118,6 @@ export default function RegisterPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {isGroup && members.slice(0, groupSize - 1).map((m, i) => (
-                <div className="space-y-2" key={i}>
-                  <Label htmlFor={`member-${i + 2}`}>Nama Anggota {i + 2}</Label>
-                  <Input id={`member-${i + 2}`} required data-testid={`reg-member-${i + 2}-input`} className={inputCls}
-                    value={m} onChange={setMember(i)} placeholder={`cth: Nama anggota ${i + 2}`} />
-                </div>
-              ))}
               {isTanding && (
                 <div className="space-y-2">
                   <Label>Kelas Tanding (Berat Badan)</Label>
