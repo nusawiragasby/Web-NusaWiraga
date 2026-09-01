@@ -48,6 +48,11 @@ export default function RegisterPage() {
 
   const submit = async (e) => {
     e.preventDefault();
+    const missing = FILE_FIELDS.filter((f) => !files[f.key]);
+    if (missing.length > 0) {
+      toast.error(`Berkas wajib belum lengkap: ${missing.map((f) => f.label).join(", ")}`);
+      return;
+    }
     setLoading(true);
     try {
       const payload = { ...form };
@@ -164,7 +169,7 @@ export default function RegisterPage() {
                   value={form.official_coach} onChange={set("official_coach")} placeholder="cth: Guru H. Rahmat" />
               </div>
               <div className="space-y-3 sm:col-span-2">
-                <Label>Berkas Pendukung (PDF/JPG/PNG, maks 5 MB per berkas)</Label>
+                <Label>Berkas Pendukung <span className="text-amber-400">(wajib)</span> — PDF/JPG/PNG, maks 5 MB per berkas</Label>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {FILE_FIELDS.map((f) => (
                     <label key={f.key} data-testid={`reg-file-${f.key}-picker`}
