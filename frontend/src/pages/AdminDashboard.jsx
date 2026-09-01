@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Swords, Users, CheckCircle2, Clock, Wallet, Download, LogOut, Search, Trash2, MessageCircle, Loader2 } from "lucide-react";
+import { Swords, Users, CheckCircle2, Clock, Wallet, Download, LogOut, Search, Trash2, MessageCircle, Loader2, Sheet } from "lucide-react";
 import Seo from "@/components/Seo";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +69,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     api.get("/auth/me").then((res) => setMe(res.data)).catch(() => navigate("/admin/login"));
   }, [navigate]);
+
+  const [sheets, setSheets] = useState(null);
+  useEffect(() => {
+    api.get("/admin/sheets/status").then((r) => setSheets(r.data)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(load, 300);
@@ -182,6 +187,16 @@ export default function AdminDashboard() {
             className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-extrabold text-stone-900 hover:opacity-90">
             <Download className="h-4 w-4" /> Export CSV
           </a>
+          {sheets && (
+            <span data-testid="admin-sheets-status"
+              className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold ${
+                sheets.connected
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                  : "border-[#2E2E3A] text-slate-500"
+              }`}>
+              <Sheet className="h-3.5 w-3.5" /> {sheets.connected ? `Sheets: ${sheets.sheet_title || "Terhubung"}` : "Sheets Nonaktif"}
+            </span>
+          )}
         </div>
 
         <div className="mt-4 overflow-hidden rounded-2xl border border-[#2E2E3A] bg-[#13131A]" data-testid="admin-table">

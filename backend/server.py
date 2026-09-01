@@ -4,6 +4,7 @@ load_dotenv()
 import os
 import io
 import csv
+import json
 import uuid
 import asyncio
 import logging
@@ -237,6 +238,10 @@ async def register(body: RegisterInput):
         await send_confirmation_email(doc)
     except Exception as e:
         logger.error(f"Gagal mengirim email konfirmasi: {e}")
+    try:
+        await append_registration_to_sheet(doc)
+    except Exception as e:
+        logger.error(f"Gagal sinkron Google Sheets: {e}")
     return {"message": "Pendaftaran berhasil", "reg_number": reg_number, "id": doc["id"]}
 
 
@@ -415,6 +420,65 @@ async def delete_sponsor(sponsor_id: str, user: dict = Depends(get_current_user)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Sponsor tidak ditemukan")
     return {"message": "Sponsor dihapus"}
+
+
+SHEET_HEADER = ["No Registrasi", "Nama", "NIK/NISN", "Email", "WhatsApp", "Perguruan", "Kategori", "Kelompok Usia", "Kelas", "Pelatih", "Status", "Pembayaran", "Tanggal Daftar"]
+
+
+def get_sheets_service():
+    raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+    sheet_id = os.environ.get("GOOGLE_SPREADSHEET_ID", "")
+    if not raw or not sheet_id:
+        return None, None
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+    info = json.loads(raw)
+    creds = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
+    return build("sheets", "v4", credentials=creds), sheet_id
+
+
+async def append_registration_to_sheet(doc: dict):
+    service, sheet_id = get_sheets_service()
+    if not service:
+        logger.info(f"[SHEETS NONAKTIF] {doc['reg_number']} tidak disinkron (kredensial belum diisi)")
+        return
+    row = [
+        doc.get("reg_number"), doc.get("full_name"), doc.get("nik_or_nisn"), doc.get("email"),
+        doc.get("phone_whatsapp"), doc.get("contingent_school"), doc.get("category"),
+        doc.get("age_class"), doc.get("weight_class") or "-", doc.get("official_coach") or "-",
+        doc.get("status"), doc.get("payment_status"), doc.get("created_at"),
+    ]
+
+    def _append():
+        meta = service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+        title = meta["sheets"][0]["properties"]["title"]
+        existing = service.spreadsheets().values().get(
+            spreadsheetId=sheet_id, range=f"'{title}'!A1:M1"
+        ).execute().get("values", [])
+        values = [row] if existing else [SHEET_HEADER, row]
+        service.spreadsheets().values().append(
+            spreadsheetId=sheet_id, range=f"'{title}'!A1",
+            valueInputOption="RAW", body={"values": values},
+        ).execute()
+
+    await asyncio.to_thread(_append)
+
+
+@api_router.get("/admin/sheets/status")
+async def sheets_status(user: dict = Depends(get_current_user)):
+    service, sheet_id = get_sheets_service()
+    if not service:
+        return {"configured": False, "connected": False}
+    try:
+        meta = await asyncio.to_thread(
+            lambda: service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+        )
+        return {"configured": True, "connected": True, "sheet_title": meta.get("properties", {}).get("title")}
+    except Exception as e:
+        logger.error(f"Cek status Sheets gagal: {e}")
+        return {"configured": True, "connected": False}
 
 
 app.include_router(api_router)
