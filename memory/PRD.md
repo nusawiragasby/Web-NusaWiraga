@@ -31,13 +31,14 @@
 - (2026-09-01) Email konfirmasi Resend AKTIF (pengirim onboarding@resend.dev; mode uji = hanya ke email pemilik akun Resend)
 - (2026-09-01) CMS Admin: tab Berita (tulis/ubah/hapus, 3 berita awal ter-seed), tab Hasil & Juara (input juara emas/perak/perunggu per kategori/divisi), tab Sponsor (upload logo maks 500KB base64, 3 tier). Beranda publik otomatis menampilkan data CMS: berita dari DB, papan juara menggantikan placeholder gelanggang saat ada data, logo sponsor menggantikan slot placeholder
 
+- (2026-09-01) Integrasi Google Sheets AKTIF: setiap pendaftar baru otomatis di-append ke spreadsheet "Pendaftaran Siswa Nusa Wiraga" (ID 1SOuRD5GYhiWNhG4fep_nvfY9Ican0yvRDuegEf5k3zs) via service account (base64 di env). Header otomatis dibuat bila sheet kosong. Indikator status Sheets tampil di dashboard admin. Endpoint: GET /api/admin/sheets/status
+
 ## Backlog Prioritas
 ### P0
 - Ganti nomor WhatsApp panitia & data kontak (masih placeholder 6281234567890)
 - Verifikasi domain di Resend agar email sampai ke semua pendaftar
 
 ### P1
-- Integrasi Google Sheets untuk data pendaftar (butuh: JSON service account + Spreadsheet ID dari user) — alternatif saat ini: tombol Export CSV di admin
 - Bagan pertandingan (bracket) visual per kelas
 - Upload logo sponsor ke object storage (saat ini base64 di MongoDB, cukup untuk logo kecil)
 - Bukti pembayaran upload oleh peserta (object storage)

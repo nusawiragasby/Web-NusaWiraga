@@ -432,7 +432,8 @@ def get_sheets_service():
         return None, None
     from google.oauth2 import service_account
     from googleapiclient.discovery import build
-    info = json.loads(raw)
+    import base64
+    info = json.loads(base64.b64decode(raw).decode())
     creds = service_account.Credentials.from_service_account_info(
         info, scopes=["https://www.googleapis.com/auth/spreadsheets"]
     )
